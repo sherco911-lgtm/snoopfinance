@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snoop Finance — Cronos DeFi</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Exo+2:ital,wght@0,300;0,400;0,600;0,800;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<style>
+  :root {
+    --cro-blue: #4ADE80;
+    --cro-purple: #15803D;
+    --cro-deep: #080D08;
+    --cro-panel: #0C140C;
+    --cro-card: #101A10;
+    --cro-border: rgba(74,222,128,0.18);
+    --cro-glow: rgba(74,222,128,0.35);
+    --cro-purple-glow: rgba(21,128,61,0.4);
+    --cro-text: #E8FFE8;
+    --cro-muted: #6B8F6B;
+    --cro-green: #4ADE80;
+    --cro-gold: #FFD700;
+    --cro-danger: #FF4D6D;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--cro-deep);
+    color: var(--cro-text);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background Effects */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -20%;
+    width: 70vw;
+    height: 70vw;
+    background: radial-gradient(ellipse, rgba(21,128,61,0.14) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -30%;
+    right: -10%;
+    width: 60vw;
+    height: 60vw;
+    background: radial-gradient(ellipse, rgba(74,222,128,0.08) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Grid Lines */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(74,222,128,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(74,222,128,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Navbar */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 68px;
+    background: rgba(10,11,30,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--cro-border);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #4ADE80, #15803D);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 0 20px var(--cro-glow);
+  }
+
+  .logo span { 
+    background: linear-gradient(90deg, #4ADE80, #FFD700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 4px;
+  }
+
+  .nav-link {
+    padding: 7px 18px;
+    border-radius: 8px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--cro-muted);
+    transition: all 0.2s;
+  }
+
+  .nav-link:hover, .nav-link.active {
+    color: var(--cro-text);
+    background: rgba(17,153,250,0.1);
+  }
+
+  .nav-link.active { color: var(--cro-blue); }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .network-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(0,209,160,0.1);
+    border: 1px solid rgba(0,209,160,0.25);
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    color: var(--cro-green);
+  }
+
+  .network-dot {
+    width: 7px; height: 7px;
+    background: var(--cro-green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .connect-btn {
+    padding: 9px 22px;
+    background: linear-gradient(135deg, #4ADE80, #15803D);
+    border: none;
+    border-radius: 10px;
+    color: #000;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0 20px var(--cro-glow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .connect-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .connect-btn:hover::before { opacity: 1; }
+  .connect-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 30px var(--cro-glow); }
+
+  .connect-btn.connected {
+    background: rgba(74,222,128,0.12);
+    border: 1px solid var(--cro-border);
+    box-shadow: none;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--cro-green);
+  }
+
+  /* Main Layout */
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+
+  /* Stats Bar */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--cro-panel);
+    border: 1px solid var(--cro-border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #4ADE80, #FFD700);
+  }
+
+  .stat-card:hover { transform: translateY(-2px); border-color: rgba(17,153,250,0.35); }
+
+  .stat-label {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--cro-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .stat-value.blue { color: var(--cro-blue); }
+  .stat-value.green { color: var(--cro-green); }
+  .stat-value.gold { color: var(--cro-gold); }
+  .stat-value.purple { color: #A78BFA; }
+
+  .stat-change {
+    font-size: 12px;
+    margin-top: 6px;
+    color: var(--cro-green);
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: var(--cro-panel);
+    border: 1px solid var(--cro-border);
+    border-radius: 12px;
+    padding: 6px;
+    width: fit-content;
+  }
+
+  .tab {
+    padding: 9px 24px;
+    border-radius: 8px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--cro-muted);
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    background: linear-gradient(135deg, rgba(74,222,128,0.15), rgba(21,128,61,0.15));
+    color: var(--cro-text);
+    border: 1px solid var(--cro-border);
+  }
+
+  /* Section header */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cro-text);
+  }
+
+  .search-filter {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .search-input {
+    background: var(--cro-panel);
+    border: 1px solid var(--cro-border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: var(--cro-text);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    outline: none;
+    width: 200px;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus { border-color: var(--cro-blue); }
+  .search-input::placeholder { color: var(--cro-muted); }
+
+  .filter-btn {
+    padding: 8px 14px;
+    background: var(--cro-panel);
+    border: 1px solid var(--cro-border);
+    border-radius: 8px;
+    color: var(--cro-muted);
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--cro-blue);
+    color: var(--cro-blue);
+    background: rgba(17,153,250,0.08);
+  }
+
+  /* Pool/Farm Grid */
+  .pools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+
+  /* Pool Card */
+  .pool-card {
+    background: var(--cro-card);
+    border: 1px solid var(--cro-border);
+    border-radius: 18px;
+    padding: 24px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .pool-card:hover {
+    border-color: rgba(17,153,250,0.4);
+    box-shadow: 0 8px 40px rgba(17,153,250,0.1);
+    transform: translateY(-3px);
+  }
+
+  .pool-card.featured::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--cro-blue), var(--cro-purple), var(--cro-green));
+  }
+
+  .pool-card.nft::before {
+    background: linear-gradient(90deg, var(--cro-gold), #FF6B35);
+  }
+
+  .pool-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .pool-tokens {
+    display: flex;
+    align-items: center;
+  }
+
+  .token-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    border: 2px solid var(--cro-deep);
+    font-family: 'Rajdhani', sans-serif;
+  }
+
+  .token-icon:not(:first-child) { margin-left: -12px; }
+
+  .pool-info { margin-left: 14px; }
+
+  .pool-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .pool-type {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--cro-muted);
+    margin-top: 2px;
+  }
+
+  .pool-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .badge-hot { background: rgba(255,75,75,0.15); color: #FF4B4B; border: 1px solid rgba(255,75,75,0.3); }
+  .badge-new { background: rgba(0,209,160,0.15); color: var(--cro-green); border: 1px solid rgba(0,209,160,0.3); }
+  .badge-nft { background: rgba(255,184,0,0.12); color: var(--cro-gold); border: 1px solid rgba(255,184,0,0.3); }
+  .badge-boosted { background: rgba(167,139,250,0.15); color: #A78BFA; border: 1px solid rgba(167,139,250,0.3); }
+
+  .pool-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .pool-stat {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 12px;
+  }
+
+  .pool-stat-label {
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    color: var(--cro-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .pool-stat-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .apy-value { color: var(--cro-green); }
+  .tvl-value { color: var(--cro-blue); }
+
+  /* Expandable section */
+  .pool-expand {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+
+  .pool-expand.open { max-height: 400px; }
+
+  .pool-expand-inner { padding-top: 16px; border-top: 1px solid var(--cro-border); }
+
+  .user-position {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .pos-stat {
+    padding: 10px 14px;
+    background: rgba(17,153,250,0.05);
+    border: 1px solid rgba(17,153,250,0.12);
+    border-radius: 8px;
+  }
+
+  .pos-label {
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    color: var(--cro-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  .pos-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cro-text);
+  }
+
+  .amount-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .amount-input {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--cro-border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--cro-text);
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .amount-input:focus { border-color: var(--cro-blue); }
+  .amount-input::placeholder { color: var(--cro-muted); }
+
+  .max-btn {
+    padding: 10px 14px;
+    background: rgba(17,153,250,0.1);
+    border: 1px solid rgba(17,153,250,0.3);
+    border-radius: 10px;
+    color: var(--cro-blue);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .max-btn:hover { background: rgba(17,153,250,0.2); }
+
+  .action-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .action-btn {
+    padding: 10px;
+    border-radius: 10px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-stake {
+    background: linear-gradient(135deg, #4ADE80, #15803D);
+    color: #000;
+    box-shadow: 0 0 15px var(--cro-glow);
+  }
+
+  .btn-stake:hover { transform: translateY(-1px); box-shadow: 0 4px 20px var(--cro-glow); }
+
+  .btn-unstake {
+    background: rgba(255,77,109,0.12);
+    border: 1px solid rgba(255,77,109,0.3);
+    color: var(--cro-danger);
+  }
+
+  .btn-unstake:hover { background: rgba(255,77,109,0.2); }
+
+  .btn-claim {
+    background: rgba(0,209,160,0.12);
+    border: 1px solid rgba(0,209,160,0.3);
+    color: var(--cro-green);
+  }
+
+  .btn-claim:hover { background: rgba(0,209,160,0.2); }
+
+  /* Toggle expand button */
+  .pool-toggle {
+    width: 100%;
+    padding: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--cro-border);
+    border-radius: 10px;
+    color: var(--cro-muted);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .pool-toggle:hover { border-color: var(--cro-blue); color: var(--cro-blue); }
+
+  .toggle-arrow {
+    transition: transform 0.3s;
+    font-size: 10px;
+  }
+
+  .pool-expand.open ~ .pool-toggle .toggle-arrow { transform: rotate(180deg); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--cro-panel);
+    border: 1px solid var(--cro-border);
+    border-radius: 24px;
+    padding: 36px;
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.3s;
+  }
+
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, #4ADE80, #FFD700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .modal-sub {
+    font-size: 13px;
+    color: var(--cro-muted);
+    margin-bottom: 28px;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 20px; right: 20px;
+    width: 32px; height: 32px;
+    background: rgba(255,255,255,0.06);
+    border: none;
+    border-radius: 8px;
+    color: var(--cro-muted);
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover { background: rgba(255,255,255,0.1); color: var(--cro-text); }
+
+  .wallet-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .wallet-option {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--cro-border);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .wallet-option:hover {
+    border-color: var(--cro-blue);
+    background: rgba(17,153,250,0.06);
+    transform: translateX(4px);
+  }
+
+  .wallet-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .wallet-details { flex: 1; }
+
+  .wallet-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .wallet-desc {
+    font-size: 12px;
+    color: var(--cro-muted);
+    margin-top: 2px;
+  }
+
+  .wallet-arrow { color: var(--cro-muted); font-size: 16px; }
+
+  /* Toast */
+  .toast-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: var(--cro-panel);
+    border: 1px solid var(--cro-border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    min-width: 280px;
+    max-width: 380px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    animation: slideIn 0.3s ease;
+    pointer-events: all;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .toast-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .toast-title { font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 0.5px; }
+  .toast-msg { font-size: 12px; color: var(--cro-muted); margin-top: 2px; font-family: 'Space Mono', monospace; }
+
+  .toast.success { border-color: rgba(0,209,160,0.3); }
+  .toast.error { border-color: rgba(255,77,109,0.3); }
+  .toast.info { border-color: rgba(17,153,250,0.3); }
+  .toast.loading { border-color: rgba(167,139,250,0.3); }
+
+  /* NFT section */
+  .nft-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .nft-card {
+    background: var(--cro-card);
+    border: 1px solid var(--cro-border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .nft-card:hover {
+    border-color: rgba(255,184,0,0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(255,184,0,0.1);
+  }
+
+  .nft-art {
+    height: 160px;
+    background: linear-gradient(135deg, #1a0a30, #0a1530, #0a2a20);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .nft-art::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(255,184,0,0.05), transparent 70%);
+  }
+
+  .nft-info { padding: 14px; }
+
+  .nft-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .nft-reward {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--cro-gold);
+  }
+
+  .nft-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(255,184,0,0.1);
+    border: 1px solid rgba(255,184,0,0.3);
+    border-radius: 8px;
+    color: var(--cro-gold);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nft-btn:hover { background: rgba(255,184,0,0.2); }
+
+  /* Loading spinner */
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: var(--cro-blue);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .stats-bar { grid-template-columns: 1fr 1fr; }
+    .nav-links { display: none; }
+    .pools-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Tab content */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Portfolio section */
+  .portfolio-card {
+    background: var(--cro-card);
+    border: 1px solid var(--cro-border);
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .portfolio-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--cro-muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .portfolio-title::before {
+    content: '';
+    width: 20px; height: 2px;
+    background: linear-gradient(90deg, #4ADE80, transparent);
+  }
+
+  .positions-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .positions-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    color: var(--cro-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-bottom: 1px solid var(--cro-border);
+  }
+
+  .positions-table td {
+    padding: 14px;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .positions-table tr:hover td { background: rgba(17,153,250,0.04); }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--cro-muted);
+  }
+
+  .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-text { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+  .empty-sub { font-size: 13px; margin-top: 8px; }
+
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- Navbar -->
+<nav>
+  <div class="logo">
+    <div class="logo-icon">🎤</div>
+    <span>Snoop Finance</span>
+  </div>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="switchTab('farms')">Farms</button>
+    <button class="nav-link" onclick="switchTab('pools')">Pools</button>
+    <button class="nav-link" onclick="switchTab('nft')">NFT Stake</button>
+    <button class="nav-link" onclick="switchTab('portfolio')">Portfolio</button>
+  </div>
+  <div class="nav-right">
+    <div class="network-badge" id="networkBadge">
+      <div class="network-dot"></div>
+      <span id="networkName">Cronos</span>
+    </div>
+    <button class="connect-btn" id="connectBtn" onclick="openWalletModal()">Connect Wallet</button>
+  </div>
+</nav>
+
+<!-- Main -->
+<main>
+
+  <!-- Contract Banner -->
+  <div style="
+    display:flex;align-items:center;justify-content:space-between;
+    background:rgba(74,222,128,0.06);
+    border:1px solid rgba(74,222,128,0.2);
+    border-radius:12px;padding:12px 20px;margin-bottom:20px;
+    flex-wrap:wrap;gap:10px;
+  ">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:18px">🎤</span>
+      <div>
+        <div style="font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--cro-green)">Snoop Finance Contract</div>
+        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cro-muted);margin-top:2px">0xA8697D675028dD16E1f38F1624143666622A2e58</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="copyContract()" style="padding:6px 14px;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);border-radius:8px;color:var(--cro-green);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='rgba(74,222,128,0.2)'" onmouseout="this.style.background='rgba(74,222,128,0.1)'">📋 Copy</button>
+      <a href="https://cronoscan.com/address/0xA8697D675028dD16E1f38F1624143666622A2e58" target="_blank" style="padding:6px 14px;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);border-radius:8px;color:var(--cro-gold);font-family:'Space Mono',monospace;font-size:11px;text-decoration:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:4px" onmouseover="this.style.background='rgba(255,215,0,0.2)'" onmouseout="this.style.background='rgba(255,215,0,0.1)'">🔍 CronoScan</a>
+      <button onclick="addSnoopToken()" style="padding:6px 14px;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);border-radius:8px;color:var(--cro-green);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='rgba(74,222,128,0.2)'" onmouseout="this.style.background='rgba(74,222,128,0.1)'">➕ Add to Wallet</button>
+    </div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">Total Value Locked</div>
+      <div class="stat-value blue" id="tvlStat">$—</div>
+      <div class="stat-change" id="tvlChange">Loading...</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Your Total Staked</div>
+      <div class="stat-value purple" id="userStaked">$0.00</div>
+      <div class="stat-change" style="color: var(--cro-muted);">Connect wallet</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pending Rewards</div>
+      <div class="stat-value green" id="pendingRewards">0.00 SNOOP</div>
+      <div class="stat-change" style="color: var(--cro-muted);">Across all pools</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">CRO Price</div>
+      <div class="stat-value gold" id="croPrice">$—</div>
+      <div class="stat-change" id="priceChange">Fetching...</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('farms')">⚡ Farms</button>
+    <button class="tab" onclick="switchTab('pools')">💧 Pools</button>
+    <button class="tab" onclick="switchTab('nft')">🖼 NFT Staking</button>
+    <button class="tab" onclick="switchTab('portfolio')">📊 Portfolio</button>
+  </div>
+
+  <!-- FARMS TAB -->
+  <div class="tab-content active" id="tab-farms">
+    <div class="section-header">
+      <div class="section-title">⚡ Yield Farms</div>
+      <div class="search-filter">
+        <input class="search-input" type="text" placeholder="Search pools..." id="farmSearch" oninput="filterPools('farm')">
+        <button class="filter-btn active" onclick="setFilter('farm', 'all', this)">All</button>
+        <button class="filter-btn" onclick="setFilter('farm', 'hot', this)">Hot 🔥</button>
+        <button class="filter-btn" onclick="setFilter('farm', 'new', this)">New</button>
+      </div>
+    </div>
+    <div class="pools-grid" id="farmsGrid">
+      <!-- Generated by JS -->
+    </div>
+  </div>
+
+  <!-- POOLS TAB -->
+  <div class="tab-content" id="tab-pools">
+    <div class="section-header">
+      <div class="section-title">💧 Staking Pools</div>
+      <div class="search-filter">
+        <input class="search-input" type="text" placeholder="Search pools..." id="poolSearch" oninput="filterPools('pool')">
+        <button class="filter-btn active" onclick="setFilter('pool', 'all', this)">All</button>
+        <button class="filter-btn" onclick="setFilter('pool', 'hot', this)">High APY</button>
+      </div>
+    </div>
+    <div class="pools-grid" id="poolsGrid">
+      <!-- Generated by JS -->
+    </div>
+  </div>
+
+  <!-- NFT TAB -->
+  <div class="tab-content" id="tab-nft">
+    <div class="section-header">
+      <div class="section-title">🖼 NFT Staking</div>
+      <div class="search-filter">
+        <span style="font-size:12px;font-family:'Space Mono',monospace;color:var(--cro-muted);">Stake NFTs to earn CRO rewards</span>
+      </div>
+    </div>
+    <div class="nft-grid" id="nftGrid">
+      <!-- Generated by JS -->
+    </div>
+  </div>
+
+  <!-- PORTFOLIO TAB -->
+  <div class="tab-content" id="tab-portfolio">
+    <div class="portfolio-card">
+      <div class="portfolio-title">Your Positions</div>
+      <div id="portfolioContent">
+        <div class="empty-state">
+          <div class="empty-icon">🔗</div>
+          <div class="empty-text">Connect Your Wallet</div>
+          <div class="empty-sub">Connect a wallet to view your staking positions</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Wallet Modal -->
+<div class="modal-overlay" id="walletModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeWalletModal()">✕</button>
+    <div class="modal-title">Connect Wallet</div>
+    <div class="modal-sub">Connect to Snoop Finance on Cronos</div>
+    <div class="wallet-options">
+      <div class="wallet-option" onclick="connectWallet('metamask')">
+        <div class="wallet-logo" style="background:#FF6B35">🦊</div>
+        <div class="wallet-details">
+          <div class="wallet-name">MetaMask</div>
+          <div class="wallet-desc">Most popular browser wallet</div>
+        </div>
+        <div class="wallet-arrow">›</div>
+      </div>
+      <div class="wallet-option" onclick="connectWallet('walletconnect')">
+        <div class="wallet-logo" style="background:#3B99FC">🔗</div>
+        <div class="wallet-details">
+          <div class="wallet-name">WalletConnect</div>
+          <div class="wallet-desc">Connect via QR code</div>
+        </div>
+        <div class="wallet-arrow">›</div>
+      </div>
+      <div class="wallet-option" onclick="connectWallet('defi')">
+        <div class="wallet-logo" style="background:#1199FA">🔷</div>
+        <div class="wallet-details">
+          <div class="wallet-name">Crypto.com DeFi Wallet</div>
+          <div class="wallet-desc">Official Crypto.com wallet</div>
+        </div>
+        <div class="wallet-arrow">›</div>
+      </div>
+      <div class="wallet-option" onclick="connectWallet('cronos')">
+        <div class="wallet-logo" style="background:#0C0C2E">🌐</div>
+        <div class="wallet-details">
+          <div class="wallet-name">Cronos Wallet Browser</div>
+          <div class="wallet-desc">Built-in Cronos wallet</div>
+        </div>
+        <div class="wallet-arrow">›</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ============================================================
+// CONSTANTS
+// ============================================================
+const CRONOS_CHAIN = {
+  chainId: '0x19', // 25 in hex
+  chainName: 'Cronos Mainnet',
+  nativeCurrency: { name: 'CRO', symbol: 'CRO', decimals: 18 },
+  rpcUrls: ['https://evm.cronos.org'],
+  blockExplorerUrls: ['https://cronoscan.com']
+};
+
+// Snoop Finance main contract
+const SNOOP_CONTRACT = '0xA8697D675028dD16E1f38F1624143666622A2e58';
+const SNOOP_EXPLORER = 'https://cronoscan.com/address/' + SNOOP_CONTRACT;
+
+// ERC-20 ABI subset
+const ERC20_ABI = [
+  "function balanceOf(address) view returns (uint256)",
+  "function approve(address, uint256) returns (bool)",
+  "function allowance(address, address) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)"
+];
+
+// MasterChef/Staking ABI subset
+const STAKING_ABI = [
+  "function deposit(uint256 pid, uint256 amount)",
+  "function withdraw(uint256 pid, uint256 amount)",
+  "function emergencyWithdraw(uint256 pid)",
+  "function pendingReward(uint256 pid, address user) view returns (uint256)",
+  "function userInfo(uint256 pid, address user) view returns (uint256 amount, uint256 rewardDebt)",
+  "function poolLength() view returns (uint256)",
+  "function poolInfo(uint256) view returns (address, uint256, uint256, uint256)"
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  provider: null,
+  signer: null,
+  account: null,
+  walletType: null,
+  chainId: null,
+  farmFilter: 'all',
+  poolFilter: 'all',
+  croPrice: 0,
+  pools: [],
+  userPositions: {}
+};
+
+// ============================================================
+// POOL DATA (Live on-chain + static defaults)
+// ============================================================
+const FARMS = [
+  {
+    id: 'f1', type: 'farm', pid: 0,
+    name: 'CRO-USDC LP', tokens: ['CRO', 'USDC'],
+    icons: ['#4ADE80', '#27AE60'],
+    apy: null, tvl: null,
+    badge: 'hot', featured: true,
+    lpAddress: '0xe61Db569E231B3f5530168Aa2C9D50246525b6d6',
+    rewardToken: 'SNOOP',
+    contractAddress: SNOOP_CONTRACT,
+    multiplier: '40x'
+  },
+  {
+    id: 'f2', type: 'farm', pid: 1,
+    name: 'CRO-WETH LP', tokens: ['CRO', 'ETH'],
+    icons: ['#4ADE80', '#627EEA'],
+    apy: null, tvl: null,
+    badge: 'boosted', featured: false,
+    lpAddress: '0x814920D1b8007207db6cB5a2dD92bF0b082BDa1',
+    rewardToken: 'SNOOP',
+    contractAddress: SNOOP_CONTRACT,
+    multiplier: '30x'
+  },
+  {
+    id: 'f3', type: 'farm', pid: 2,
+    name: 'USDC-USDT LP', tokens: ['USDC', 'USDT'],
+    icons: ['#27AE60', '#26A17B'],
+    apy: null, tvl: null,
+    badge: 'new', featured: false,
+    lpAddress: '0xbf62c67eA509E86F07c8c69d0286C0636C50270b',
+    rewardToken: 'SNOOP',
+    contractAddress: SNOOP_CONTRACT,
+    multiplier: '20x'
+  },
+  {
+    id: 'f4', type: 'farm', pid: 3,
+    name: 'CRO-WBTC LP', tokens: ['CRO', 'BTC'],
+    icons: ['#4ADE80', '#F7931A'],
+    apy: null, tvl: null,
+    badge: 'hot', featured: true,
+    lpAddress: '0x382A9a8927F97f7489Af3F0E2845f65F75eB7A5c',
+    rewardToken: 'SNOOP',
+    contractAddress: SNOOP_CONTRACT,
+    multiplier: '25x'
+  }
+];
+
+const POOLS = [
+  {
+    id: 'p0', type: 'pool', pid: 0,
+    name: 'SNOOP Staking', tokens: ['SNOOP'],
+    icons: ['#4ADE80'],
+    apy: null, tvl: null,
+    badge: 'hot', featured: true,
+    tokenAddress: SNOOP_CONTRACT,
+    rewardToken: 'SNOOP',
+    contractAddress: SNOOP_CONTRACT,
+    lockDuration: 'None'
+  },
+  {
+    id: 'p1', type: 'pool', pid: 1,
+    name: 'CRO Staking', tokens: ['CRO'],
+    icons: ['#4ADE80'],
+    apy: null, tvl: null,
+    badge: 'new', featured: false,
+    tokenAddress: '0x5C7F8A570d578ED84E63fdFA7b1eE72dEae1AE23',
+    rewardToken: 'SNOOP',
+    contractAddress: SNOOP_CONTRACT,
+    lockDuration: 'None'
+  },
+  {
+    id: 'p2', type: 'pool', pid: 2,
+    name: 'VVS Staking', tokens: ['VVS'],
+    icons: ['#A78BFA'],
+    apy: null, tvl: null,
+    badge: 'new', featured: false,
+    tokenAddress: '0x2D03bECE6747ADC00E1a131BBA1469C15fD11e03',
+    rewardToken: 'SNOOP',
+    contractAddress: SNOOP_CONTRACT,
+    lockDuration: '7 Days'
+  },
+  {
+    id: 'p3', type: 'pool', pid: 3,
+    name: 'WCRO Staking', tokens: ['WCRO'],
+    icons: ['#FFD700'],
+    apy: null, tvl: null,
+    badge: 'boosted', featured: false,
+    tokenAddress: '0x5C7F8A570d578ED84E63fdFA7b1eE72dEae1AE23',
+    rewardToken: 'SNOOP',
+    contractAddress: SNOOP_CONTRACT,
+    lockDuration: '30 Days'
+  }
+];
+
+const NFT_COLLECTIONS = [
+  { id: 'n1', name: 'CronosPunks', art: '🤖', rarity: 'Rare', rewardRate: '12 CRO/day', staked: 0, totalStaked: 847 },
+  { id: 'n2', name: 'CroKongs', art: '🦍', rarity: 'Epic', rewardRate: '28 CRO/day', staked: 0, totalStaked: 312 },
+  { id: 'n3', name: 'CroGods', art: '⚡', rarity: 'Legendary', rewardRate: '75 CRO/day', staked: 0, totalStaked: 99 },
+  { id: 'n4', name: 'Dragon Series', art: '🐉', rarity: 'Mythic', rewardRate: '150 CRO/day', staked: 0, totalStaked: 42 },
+  { id: 'n5', name: 'CroPixels', art: '🎮', rarity: 'Common', rewardRate: '5 CRO/day', staked: 0, totalStaked: 2100 },
+  { id: 'n6', name: 'CroWizards', art: '🧙', rarity: 'Rare', rewardRate: '18 CRO/day', staked: 0, totalStaked: 560 }
+];
+
+// ============================================================
+// FETCH LIVE DATA
+// ============================================================
+async function fetchCroPrice() {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=crypto-com-chain&vs_currencies=usd&include_24hr_change=true');
+    const d = await r.json();
+    const price = d['crypto-com-chain']?.usd || 0;
+    const change = d['crypto-com-chain']?.usd_24h_change || 0;
+    state.croPrice = price;
+    document.getElementById('croPrice').textContent = '$' + price.toFixed(4);
+    const changeEl = document.getElementById('priceChange');
+    changeEl.textContent = (change >= 0 ? '▲' : '▼') + ' ' + Math.abs(change).toFixed(2) + '% 24h';
+    changeEl.style.color = change >= 0 ? 'var(--cro-green)' : 'var(--cro-danger)';
+  } catch(e) {
+    // Fallback static data
+    state.croPrice = 0.0892;
+    document.getElementById('croPrice').textContent = '$0.0892';
+    document.getElementById('priceChange').textContent = '▲ 2.41% 24h';
+  }
+}
+
+async function fetchPoolStats() {
+  // Assign simulated on-chain APYs and TVLs for demo (replace with actual contract calls when deploying)
+  const apyData = {
+    f1: { apy: 142.5, tvl: 4820000 },
+    f2: { apy: 98.3, tvl: 2340000 },
+    f3: { apy: 24.7, tvl: 8900000 },
+    f4: { apy: 118.9, tvl: 1670000 },
+    p0: { apy: 210.4, tvl: 3100000 },
+    p1: { apy: 18.4, tvl: 12400000 },
+    p2: { apy: 66.2, tvl: 890000 },
+    p3: { apy: 44.8, tvl: 3200000 }
+  };
+
+  let totalTVL = 0;
+  [...FARMS, ...POOLS].forEach(pool => {
+    const d = apyData[pool.id];
+    if (d) { pool.apy = d.apy; pool.tvl = d.tvl; totalTVL += d.tvl; }
+  });
+
+  document.getElementById('tvlStat').textContent = '$' + (totalTVL / 1e6).toFixed(2) + 'M';
+  document.getElementById('tvlChange').textContent = '▲ 5.2% this week';
+  document.getElementById('tvlChange').style.color = 'var(--cro-green)';
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderTokenIcon(label, color) {
+  return `<div class="token-icon" style="background:${color}20;color:${color};border-color:${color}40">${label.substring(0,3)}</div>`;
+}
+
+function renderPoolCard(pool) {
+  const isExpanded = false;
+  const badge = pool.badge ? `<span class="pool-badge badge-${pool.badge}">${pool.badge.toUpperCase()}</span>` : '';
+  const tokensHtml = pool.tokens.map((t,i) => renderTokenIcon(t, pool.icons[i])).join('');
+  const apyStr = pool.apy ? pool.apy.toFixed(1) + '%' : '...%';
+  const tvlStr = pool.tvl ? '$' + (pool.tvl >= 1e6 ? (pool.tvl/1e6).toFixed(2)+'M' : (pool.tvl/1e3).toFixed(0)+'K') : '$...';
+  const featuredClass = pool.featured ? 'featured' : '';
+  const nftClass = pool.type === 'nft' ? 'nft' : '';
+  const extraStat = pool.multiplier ? `<div class="pool-stat"><div class="pool-stat-label">Multiplier</div><div class="pool-stat-value" style="color:#A78BFA">${pool.multiplier}</div></div>` 
+    : `<div class="pool-stat"><div class="pool-stat-label">Lock</div><div class="pool-stat-value" style="color:var(--cro-muted);font-size:14px">${pool.lockDuration || 'None'}</div></div>`;
+
+  return `
+  <div class="pool-card ${featuredClass} ${nftClass}" id="card-${pool.id}" style="animation-delay:${Math.random()*0.3}s">
+    <div class="pool-header">
+      <div class="pool-tokens">
+        ${tokensHtml}
+        <div class="pool-info">
+          <div class="pool-name">${pool.name}</div>
+          <div class="pool-type">${pool.type === 'farm' ? 'Yield Farm · Earn ' + pool.rewardToken : 'Single Stake · Earn ' + pool.rewardToken}</div>
+        </div>
+      </div>
+      ${badge}
+    </div>
+    <div class="pool-stats">
+      <div class="pool-stat">
+        <div class="pool-stat-label">APY</div>
+        <div class="pool-stat-value apy-value">${apyStr}</div>
+      </div>
+      <div class="pool-stat">
+        <div class="pool-stat-label">TVL</div>
+        <div class="pool-stat-value tvl-value">${tvlStr}</div>
+      </div>
+      ${extraStat}
+      <div class="pool-stat">
+        <div class="pool-stat-label">Reward</div>
+        <div class="pool-stat-value" style="color:var(--cro-gold)">${pool.rewardToken}</div>
+      </div>
+    </div>
+    <div class="pool-expand" id="expand-${pool.id}">
+      <div class="pool-expand-inner">
+        <div class="user-position">
+          <div class="pos-stat">
+            <div class="pos-label">Your Stake</div>
+            <div class="pos-value" id="staked-${pool.id}">0.00</div>
+          </div>
+          <div class="pos-stat">
+            <div class="pos-label">Rewards</div>
+            <div class="pos-value" style="color:var(--cro-green)" id="rewards-${pool.id}">0.00</div>
+          </div>
+        </div>
+        <div class="amount-row">
+          <input class="amount-input" type="number" placeholder="Amount to stake..." id="input-${pool.id}" min="0" step="any">
+          <button class="max-btn" onclick="setMax('${pool.id}')">MAX</button>
+        </div>
+        <div class="action-btns">
+          <button class="action-btn btn-stake" onclick="stakeAction('${pool.id}', 'stake')">Stake</button>
+          <button class="action-btn btn-unstake" onclick="stakeAction('${pool.id}', 'unstake')">Unstake</button>
+          <button class="action-btn btn-claim" onclick="stakeAction('${pool.id}', 'claim')">Claim</button>
+        </div>
+      </div>
+    </div>
+    <button class="pool-toggle" onclick="toggleExpand('${pool.id}')">
+      <span>Manage Position</span>
+      <span class="toggle-arrow">▼</span>
+    </button>
+  </div>`;
+}
+
+function renderFarms() {
+  const search = document.getElementById('farmSearch')?.value.toLowerCase() || '';
+  const filter = state.farmFilter;
+  const farms = FARMS.filter(f => {
+    if (search && !f.name.toLowerCase().includes(search)) return false;
+    if (filter !== 'all' && f.badge !== filter) return false;
+    return true;
+  });
+  document.getElementById('farmsGrid').innerHTML = farms.map(renderPoolCard).join('');
+}
+
+function renderPools() {
+  const search = document.getElementById('poolSearch')?.value.toLowerCase() || '';
+  const pools = POOLS.filter(p => !search || p.name.toLowerCase().includes(search));
+  document.getElementById('poolsGrid').innerHTML = pools.map(renderPoolCard).join('');
+}
+
+function renderNFTs() {
+  document.getElementById('nftGrid').innerHTML = NFT_COLLECTIONS.map(n => `
+    <div class="nft-card">
+      <div class="nft-art">${n.art}</div>
+      <div class="nft-info">
+        <div class="nft-name">${n.name}</div>
+        <div class="nft-reward">${n.rewardRate}</div>
+        <div style="font-size:11px;color:var(--cro-muted);margin-top:4px;font-family:'Space Mono',monospace">${n.totalStaked} staked</div>
+        <button class="nft-btn" onclick="nftStake('${n.id}')">Stake NFT</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// WALLET CONNECTION
+// ============================================================
+function openWalletModal() {
+  document.getElementById('walletModal').classList.add('open');
+}
+
+function closeWalletModal() {
+  document.getElementById('walletModal').classList.remove('open');
+}
+
+async function connectWallet(type) {
+  closeWalletModal();
+  
+  if (type === 'metamask' || type === 'defi' || type === 'cronos') {
+    if (!window.ethereum) {
+      showToast('error', 'Wallet Not Found', type === 'metamask' ? 'Please install MetaMask extension' : 'Wallet not detected in browser');
+      return;
+    }
+    await connectEthereumProvider(type);
+  } else if (type === 'walletconnect') {
+    showToast('info', 'WalletConnect', 'WalletConnect requires @walletconnect/web3-provider SDK loaded separately');
+    // In production: use WalletConnect SDK
+    // const WalletConnectProvider = window.WalletConnectProvider.default;
+    // const wcProvider = new WalletConnectProvider({ rpc: { 25: 'https://evm.cronos.org' } });
+    // await wcProvider.enable();
+    // state.provider = new ethers.providers.Web3Provider(wcProvider);
+    return;
+  }
+}
+
+async function connectEthereumProvider(type) {
+  try {
+    showToast('loading', 'Connecting...', 'Requesting account access');
+
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    if (!accounts.length) { showToast('error', 'Connection Failed', 'No accounts found'); return; }
+
+    // Switch to Cronos
+    await switchToCronos();
+
+    state.provider = new ethers.providers.Web3Provider(window.ethereum);
+    state.signer = state.provider.getSigner();
+    state.account = accounts[0];
+    state.walletType = type;
+    state.chainId = await state.provider.getNetwork().then(n => n.chainId);
+
+    updateWalletUI();
+    await loadUserPositions();
+    showToast('success', 'Wallet Connected', shortAddr(state.account));
+    renderPortfolio();
+
+  } catch(e) {
+    if (e.code === 4001) showToast('error', 'Rejected', 'Connection was rejected');
+    else showToast('error', 'Error', e.message?.slice(0,60) || 'Connection failed');
+  }
+}
+
+async function switchToCronos() {
+  try {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: CRONOS_CHAIN.chainId }]
+    });
+  } catch(e) {
+    if (e.code === 4902) {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [CRONOS_CHAIN]
+      });
+    }
+  }
+}
+
+function updateWalletUI() {
+  const btn = document.getElementById('connectBtn');
+  if (state.account) {
+    btn.textContent = shortAddr(state.account);
+    btn.classList.add('connected');
+    document.getElementById('networkName').textContent = 'Cronos';
+  } else {
+    btn.textContent = 'Connect Wallet';
+    btn.classList.remove('connected');
+  }
+}
+
+function shortAddr(addr) {
+  return addr.slice(0,6) + '...' + addr.slice(-4);
+}
+
+// ============================================================
+// STAKING ACTIONS
+// ============================================================
+async function stakeAction(poolId, action) {
+  if (!state.account) {
+    openWalletModal();
+    showToast('info', 'Wallet Required', 'Please connect your wallet first');
+    return;
+  }
+
+  const pool = [...FARMS, ...POOLS].find(p => p.id === poolId);
+  if (!pool) return;
+
+  const amountInput = document.getElementById('input-' + poolId);
+  const amountStr = amountInput?.value || '0';
+
+  if (action === 'stake' && (!amountStr || parseFloat(amountStr) <= 0)) {
+    showToast('error', 'Invalid Amount', 'Please enter an amount to stake');
+    return;
+  }
+
+  try {
+    showToast('loading', action.charAt(0).toUpperCase() + action.slice(1) + 'ing...', 'Waiting for wallet confirmation');
+    
+    const contract = new ethers.Contract(pool.contractAddress, STAKING_ABI, state.signer);
+    
+    if (action === 'stake') {
+      const tokenContract = new ethers.Contract(pool.lpAddress || pool.tokenAddress, ERC20_ABI, state.signer);
+      const decimals = await tokenContract.decimals();
+      const amount = ethers.utils.parseUnits(amountStr, decimals);
+      
+      // Approve first
+      showToast('loading', 'Approving...', 'Approve token spend in your wallet');
+      const approveTx = await tokenContract.approve(pool.contractAddress, amount);
+      await approveTx.wait();
+      
+      showToast('loading', 'Staking...', 'Confirm stake transaction');
+      const tx = await contract.deposit(pool.pid, amount);
+      showToast('loading', 'Transaction Sent', `TX: ${tx.hash.slice(0,20)}...`);
+      await tx.wait();
+      showToast('success', 'Staked Successfully!', `Staked ${amountStr} tokens`);
+      amountInput.value = '';
+      await loadUserPositions();
+
+    } else if (action === 'unstake') {
+      const stakedEl = document.getElementById('staked-' + poolId);
+      const staked = state.userPositions[poolId]?.staked || '0';
+      if (!staked || staked === '0') { showToast('error', 'Nothing Staked', 'No tokens to unstake'); return; }
+      
+      const tokenContract = new ethers.Contract(pool.lpAddress || pool.tokenAddress, ERC20_ABI, state.provider);
+      const decimals = await tokenContract.decimals();
+      const amount = amountStr && parseFloat(amountStr) > 0 
+        ? ethers.utils.parseUnits(amountStr, decimals) 
+        : ethers.utils.parseUnits(staked, decimals);
+      
+      const tx = await contract.withdraw(pool.pid, amount);
+      showToast('loading', 'Unstaking...', `TX: ${tx.hash.slice(0,20)}...`);
+      await tx.wait();
+      showToast('success', 'Unstaked!', 'Tokens returned to your wallet');
+      await loadUserPositions();
+
+    } else if (action === 'claim') {
+      const tx = await contract.deposit(pool.pid, 0); // claim with 0 deposit
+      showToast('loading', 'Claiming...', `TX: ${tx.hash.slice(0,20)}...`);
+      await tx.wait();
+      showToast('success', 'Rewards Claimed!', 'Check your wallet');
+      await loadUserPositions();
+    }
+
+  } catch(e) {
+    if (e.code === 4001 || e.code === 'ACTION_REJECTED') {
+      showToast('error', 'Rejected', 'Transaction was rejected');
+    } else {
+      showToast('error', 'Transaction Failed', e.reason || e.message?.slice(0,80) || 'Unknown error');
+    }
+  }
+}
+
+async function loadUserPositions() {
+  if (!state.account || !state.provider) return;
+  
+  for (const pool of [...FARMS, ...POOLS]) {
+    try {
+      const contract = new ethers.Contract(pool.contractAddress, STAKING_ABI, state.provider);
+      const [staked] = await contract.userInfo(pool.pid, state.account);
+      const rewards = await contract.pendingReward(pool.pid, state.account);
+      
+      const tokenContract = new ethers.Contract(pool.lpAddress || pool.tokenAddress, ERC20_ABI, state.provider);
+      const decimals = await tokenContract.decimals();
+      
+      const stakedFormatted = parseFloat(ethers.utils.formatUnits(staked, decimals)).toFixed(4);
+      const rewardsFormatted = parseFloat(ethers.utils.formatUnits(rewards, 18)).toFixed(4);
+      
+      state.userPositions[pool.id] = { staked: stakedFormatted, rewards: rewardsFormatted };
+      
+      const stakedEl = document.getElementById('staked-' + pool.id);
+      const rewardsEl = document.getElementById('rewards-' + pool.id);
+      if (stakedEl) stakedEl.textContent = stakedFormatted;
+      if (rewardsEl) rewardsEl.textContent = rewardsFormatted;
+    } catch(e) {
+      // Contract may not be deployed - show placeholder
+    }
+  }
+
+  // Calculate totals
+  let totalPending = 0;
+  Object.values(state.userPositions).forEach(p => { totalPending += parseFloat(p.rewards) || 0; });
+  document.getElementById('pendingRewards').textContent = totalPending.toFixed(4) + ' SNOOP';
+}
+
+async function setMax(poolId) {
+  if (!state.account) { openWalletModal(); return; }
+  const pool = [...FARMS, ...POOLS].find(p => p.id === poolId);
+  if (!pool) return;
+  
+  try {
+    const tokenContract = new ethers.Contract(pool.lpAddress || pool.tokenAddress, ERC20_ABI, state.provider);
+    const [bal, dec] = await Promise.all([tokenContract.balanceOf(state.account), tokenContract.decimals()]);
+    const formatted = ethers.utils.formatUnits(bal, dec);
+    const input = document.getElementById('input-' + poolId);
+    if (input) input.value = parseFloat(formatted).toFixed(6);
+  } catch(e) {
+    showToast('error', 'Could not fetch balance', e.message?.slice(0,50));
+  }
+}
+
+async function nftStake(nftId) {
+  if (!state.account) { openWalletModal(); showToast('info', 'Wallet Required', 'Connect wallet to stake NFTs'); return; }
+  const nft = NFT_COLLECTIONS.find(n => n.id === nftId);
+  showToast('info', 'NFT Staking', `Opening ${nft.name} staking interface...`);
+  // In production: call NFT staking contract
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function toggleExpand(poolId) {
+  const el = document.getElementById('expand-' + poolId);
+  el.classList.toggle('open');
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab, .nav-link').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(b => { if (b.textContent.toLowerCase().includes(name.replace('nft','nft'))) b.classList.add('active'); });
+  document.querySelectorAll('.nav-link').forEach(b => { if (b.textContent.toLowerCase().includes(name)) b.classList.add('active'); });
+}
+
+function filterPools(type) {
+  if (type === 'farm') renderFarms();
+  else renderPools();
+}
+
+function setFilter(type, filter, btn) {
+  if (type === 'farm') state.farmFilter = filter;
+  else state.poolFilter = filter;
+  btn.closest('.search-filter').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterPools(type);
+}
+
+function renderPortfolio() {
+  const el = document.getElementById('portfolioContent');
+  if (!state.account) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔗</div><div class="empty-text">Connect Your Wallet</div><div class="empty-sub">Connect a wallet to view your staking positions</div></div>`;
+    return;
+  }
+  const positions = [...FARMS, ...POOLS].filter(p => state.userPositions[p.id]?.staked > 0);
+  if (!positions.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">💼</div><div class="empty-text">No Active Positions</div><div class="empty-sub">Start staking to see your positions here</div></div>`;
+    return;
+  }
+  el.innerHTML = `<table class="positions-table">
+    <thead><tr><th>Pool</th><th>Staked</th><th>Rewards</th><th>APY</th><th>Value</th></tr></thead>
+    <tbody>${positions.map(p => `<tr>
+      <td><strong>${p.name}</strong></td>
+      <td>${state.userPositions[p.id].staked}</td>
+      <td style="color:var(--cro-green)">${state.userPositions[p.id].rewards}</td>
+      <td style="color:var(--cro-green)">${p.apy?.toFixed(1)}%</td>
+      <td style="color:var(--cro-blue)">$${(parseFloat(state.userPositions[p.id].staked) * state.croPrice).toFixed(2)}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+// ============================================================
+// TOAST NOTIFICATIONS
+// ============================================================
+function showToast(type, title, msg) {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️', loading: '⏳' };
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span class="toast-icon">${icons[type]}</span><div><div class="toast-title">${title}</div><div class="toast-msg">${msg || ''}</div></div>`;
+  container.appendChild(toast);
+  const duration = type === 'loading' ? 3500 : 4500;
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.4s'; setTimeout(() => toast.remove(), 400); }, duration);
+}
+
+// ============================================================
+// LISTEN FOR WALLET EVENTS
+// ============================================================
+if (window.ethereum) {
+  window.ethereum.on('accountsChanged', async (accounts) => {
+    if (accounts.length) {
+      state.account = accounts[0];
+      state.signer = state.provider?.getSigner();
+      updateWalletUI();
+      await loadUserPositions();
+      showToast('info', 'Account Changed', shortAddr(accounts[0]));
+    } else {
+      state.account = null;
+      updateWalletUI();
+    }
+  });
+  window.ethereum.on('chainChanged', (chainId) => {
+    if (parseInt(chainId) !== 25) {
+      showToast('error', 'Wrong Network', 'Please switch to Cronos mainnet');
+    }
+    window.location.reload();
+  });
+}
+
+// Close modal on overlay click
+document.getElementById('walletModal').addEventListener('click', function(e) {
+  if (e.target === this) closeWalletModal();
+});
+
+// ============================================================
+// SNOOP CONTRACT HELPERS
+// ============================================================
+function copyContract() {
+  navigator.clipboard.writeText('0xA8697D675028dD16E1f38F1624143666622A2e58')
+    .then(() => showToast('success', 'Copied!', 'Contract address copied to clipboard'))
+    .catch(() => showToast('error', 'Copy Failed', 'Please copy manually'));
+}
+
+async function addSnoopToken() {
+  if (!window.ethereum) { showToast('error', 'No Wallet', 'Connect a wallet first'); return; }
+  try {
+    await window.ethereum.request({
+      method: 'wallet_watchAsset',
+      params: {
+        type: 'ERC20',
+        options: {
+          address: '0xA8697D675028dD16E1f38F1624143666622A2e58',
+          symbol: 'SNOOP',
+          decimals: 18
+        }
+      }
+    });
+    showToast('success', 'SNOOP Added!', 'Token added to your wallet');
+  } catch(e) {
+    showToast('error', 'Failed', e.message?.slice(0,60) || 'Could not add token');
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  await Promise.all([fetchCroPrice(), fetchPoolStats()]);
+  renderFarms();
+  renderPools();
+  renderNFTs();
+  // Auto-refresh price every 60 seconds
+  setInterval(fetchCroPrice, 60000);
+}
+
+init();
+</script>
+</body>
+</html>
